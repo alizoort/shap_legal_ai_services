@@ -1,0 +1,45 @@
+x-dev-environment: &dev-environment
+  ALLOW_DIRECT_PACKAGE_IMPORTS: "true"
+
+include:
+  - docker-compose.common.yml
+
+services:
+  db:
+    env_file:
+      - .env.example
+    ports:
+      - "5437:5432"
+
+  app:
+    image: shap-gateway:latest
+    env_file:
+      - .env.example
+    environment:
+      <<: *dev-environment
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./:/app
+    command: ["python", "-m", "uvicorn", "services.gateway_service.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  legal-ai-db-migrate:
+    image: shap-legal-ai-service:latest
+    env_file:
+      - .env.example
+    environment:
+      <<: *dev-environment
+    volumes:
+      - ./:/app
+
+  legal-ai-service:
+    image: shap-legal-ai-service:latest
+    env_file:
+      - .env.example
+    environment:
+      <<: *dev-environment
+    ports:
+      - "8103:8103"
+    volumes:
+      - ./:/app
+    command: ["python", "-m", "uvicorn", "services.legal_ai_service.app.main:app", "--host", "0.0.0.0", "--port", "8103", "--reload"]

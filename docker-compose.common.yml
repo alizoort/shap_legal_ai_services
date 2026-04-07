@@ -1,0 +1,68 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile.db
+    container_name: shap_legal_ai_db
+    environment:
+      POSTGRES_USER: ${DATASOURCE_USERNAME:-app}
+      POSTGRES_PASSWORD: ${DATASOURCE_PASSWORD:-app}
+      POSTGRES_DB: ${ADMIN_DBNAME:-postgres}
+      LEGAL_AI_DBNAME: ${LEGAL_AI_DBNAME:-legal_ai_db}
+    volumes:
+      - postgres-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATASOURCE_USERNAME:-app} -d ${ADMIN_DBNAME:-postgres} -h localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: services/gateway_service/Dockerfile
+    container_name: shap_legal_ai_gateway
+    environment:
+      LEGAL_AI_SERVICE_BASE_URL: "http://legal-ai-service:8103"
+      GATEWAY_TRUST_USER_CONTEXT_HEADERS: "true"
+      REQUIRE_SIGNED_USER_CONTEXT: "false"
+      GATEWAY_USER_CONTEXT_SECRET: ${GATEWAY_USER_CONTEXT_SECRET:-shap-legal-ai-local-user-context-secret}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+
+  legal-ai-db-migrate:
+    build:
+      context: .
+      dockerfile: services/legal_ai_service/Dockerfile
+    container_name: shap_legal_ai_db_migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ADMIN_DBNAME: ${ADMIN_DBNAME:-postgres}
+      LEGAL_AI_DATABASE_URL: "${DATASOURCE_URL:-postgresql://app:app@db:5432}/${LEGAL_AI_DBNAME:-legal_ai_db}"
+    command:
+      [
+        "python",
+        "-m",
+        "services.legal_ai_service.run_migrations",
+        "--allow-create-database"
+      ]
+    restart: "no"
+
+  legal-ai-service:
+    build:
+      context: .
+      dockerfile: services/legal_ai_service/Dockerfile
+    container_name: shap_legal_ai_service
+    depends_on:
+      legal-ai-db-migrate:
+        condition: service_completed_successfully
+    environment:
+      LEGAL_AI_DATABASE_URL: "${DATASOURCE_URL:-postgresql://app:app@db:5432}/${LEGAL_AI_DBNAME:-legal_ai_db}"
+      GATEWAY_TRUST_USER_CONTEXT_HEADERS: "true"
+      REQUIRE_SIGNED_USER_CONTEXT: "false"
+      GATEWAY_USER_CONTEXT_SECRET: ${GATEWAY_USER_CONTEXT_SECRET:-shap-legal-ai-local-user-context-secret}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+
+volumes:
+  postgres-db-data:

@@ -1,0 +1,11 @@
+alembic==1.13.2
+fastapi==0.115.0
+httpx==0.27.2
+prometheus-client==0.21.1
+psycopg2-binary==2.9.9
+pydantic==2.9.2
+shap-contracts==0.1.0
+shap-service-runtime[all]==0.1.0
+SQLAlchemy==2.0.34
+typing-extensions==4.12.2
+uvicorn[standard]==0.30.6

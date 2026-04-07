@@ -1,0 +1,5 @@
+[packages."shap-contracts"]
+version = "0.1.0"
+
+[packages."shap-service-runtime"]
+version = "0.1.0"

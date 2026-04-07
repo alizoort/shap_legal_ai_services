@@ -1,0 +1,48 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+.venv
+venv
+env
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Database data & volumes
+postgres-data
+postgres-db-data/
+keycloak-db-data/
+storage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker development files (not needed in images)
+docker-compose.yml
+docker-compose.deploy.yml
+docker-compose.common.yml
+
+# Deployment configs (not needed in runtime images)
+deploy/
+.env
+.env.*
+!.env.example
