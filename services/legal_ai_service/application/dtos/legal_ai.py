@@ -9,3 +9,9 @@ class LegalAiPingResponse:
     status: str
     message: str
     reserved_routes: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class LegalAiAnalyzeRequest:
+    text: str
+    include_commentary: bool = False

@@ -8,6 +8,10 @@ class LegalAiScaffoldService:
         return LegalAiPingResponse(
             service_name="legal_ai_service",
             status="ok",
-            message="Reserved SHAP Legal AI route is reachable.",
-            reserved_routes=("/legal-ai/ping", "/legal-ai/*"),
+            message="Employment compliance risk analysis routes are reachable.",
+            reserved_routes=(
+                "/legal-ai/ping",
+                "/legal-ai/model-summary",
+                "/legal-ai/analyze",
+            ),
         )

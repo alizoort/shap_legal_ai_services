@@ -1,0 +1,99 @@
+{
+  "model_type": "tfidf_logistic_regression",
+  "dataset": {
+    "training_sample_count": 120,
+    "gold_sample_count": 18,
+    "training_label_counts": {
+      "low": 40,
+      "medium": 40,
+      "high": 40
+    },
+    "gold_label_counts": {
+      "low": 6,
+      "medium": 6,
+      "high": 6
+    }
+  },
+  "cross_validation": {
+    "accuracy": 0.858333,
+    "macro_f1": 0.858349,
+    "confusion_matrix": [
+      [
+        36,
+        1,
+        3
+      ],
+      [
+        2,
+        31,
+        7
+      ],
+      [
+        2,
+        2,
+        36
+      ]
+    ],
+    "per_class_metrics": {
+      "low": {
+        "precision": 0.9,
+        "recall": 0.9,
+        "f1": 0.9,
+        "support": 40
+      },
+      "medium": {
+        "precision": 0.911765,
+        "recall": 0.775,
+        "f1": 0.837838,
+        "support": 40
+      },
+      "high": {
+        "precision": 0.782609,
+        "recall": 0.9,
+        "f1": 0.837209,
+        "support": 40
+      }
+    }
+  },
+  "gold_evaluation": {
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "confusion_matrix": [
+      [
+        6,
+        0,
+        0
+      ],
+      [
+        0,
+        6,
+        0
+      ],
+      [
+        0,
+        0,
+        6
+      ]
+    ],
+    "per_class_metrics": {
+      "low": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6
+      },
+      "medium": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6
+      },
+      "high": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6
+      }
+    }
+  }
+}

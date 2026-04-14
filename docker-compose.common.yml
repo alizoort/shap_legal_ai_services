@@ -63,6 +63,10 @@ services:
       REQUIRE_SIGNED_USER_CONTEXT: "false"
       GATEWAY_USER_CONTEXT_SECRET: ${GATEWAY_USER_CONTEXT_SECRET:-shap-legal-ai-local-user-context-secret}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:4200,http://127.0.0.1:4200}
+      LEGAL_AI_ENABLE_COMMENTARY: ${LEGAL_AI_ENABLE_COMMENTARY:-false}
+      LLM_PROVIDER: ${LLM_PROVIDER:-openai}
+      LLM_MODEL: ${LLM_MODEL:-gpt-4.1-mini}
+      LLM_API_KEY: ${LLM_API_KEY:-}
 
 volumes:
   postgres-db-data:

@@ -1,0 +1,128 @@
+{
+  "high": [
+    {
+      "term": "without",
+      "mean_abs_shap": 0.058214
+    },
+    {
+      "term": "access",
+      "mean_abs_shap": 0.02039
+    },
+    {
+      "term": "all",
+      "mean_abs_shap": 0.016845
+    },
+    {
+      "term": "monitor",
+      "mean_abs_shap": 0.015607
+    },
+    {
+      "term": "records",
+      "mean_abs_shap": 0.011786
+    },
+    {
+      "term": "track",
+      "mean_abs_shap": 0.010032
+    },
+    {
+      "term": "process",
+      "mean_abs_shap": 0.008506
+    },
+    {
+      "term": "check",
+      "mean_abs_shap": 0.008333
+    },
+    {
+      "term": "inspect",
+      "mean_abs_shap": 0.007485
+    },
+    {
+      "term": "security",
+      "mean_abs_shap": 0.007222
+    }
+  ],
+  "low": [
+    {
+      "term": "without",
+      "mean_abs_shap": 0.065338
+    },
+    {
+      "term": "access",
+      "mean_abs_shap": 0.025237
+    },
+    {
+      "term": "documented",
+      "mean_abs_shap": 0.014487
+    },
+    {
+      "term": "review",
+      "mean_abs_shap": 0.014119
+    },
+    {
+      "term": "process",
+      "mean_abs_shap": 0.013363
+    },
+    {
+      "term": "security",
+      "mean_abs_shap": 0.012022
+    },
+    {
+      "term": "written",
+      "mean_abs_shap": 0.011109
+    },
+    {
+      "term": "not",
+      "mean_abs_shap": 0.009814
+    },
+    {
+      "term": "audit",
+      "mean_abs_shap": 0.009184
+    },
+    {
+      "term": "all",
+      "mean_abs_shap": 0.008241
+    }
+  ],
+  "medium": [
+    {
+      "term": "check",
+      "mean_abs_shap": 0.016185
+    },
+    {
+      "term": "not",
+      "mean_abs_shap": 0.015748
+    },
+    {
+      "term": "inspect",
+      "mean_abs_shap": 0.014974
+    },
+    {
+      "term": "documented",
+      "mean_abs_shap": 0.010245
+    },
+    {
+      "term": "written",
+      "mean_abs_shap": 0.009246
+    },
+    {
+      "term": "review",
+      "mean_abs_shap": 0.009236
+    },
+    {
+      "term": "all",
+      "mean_abs_shap": 0.008604
+    },
+    {
+      "term": "monitor",
+      "mean_abs_shap": 0.00824
+    },
+    {
+      "term": "notice",
+      "mean_abs_shap": 0.007291
+    },
+    {
+      "term": "without defining",
+      "mean_abs_shap": 0.007166
+    }
+  ]
+}
