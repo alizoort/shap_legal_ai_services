@@ -9,6 +9,69 @@ from typing import Any
 from services.legal_ai_service.assets.synthetic_dataset_source import RISK_LABELS
 
 _RANDOM_STATE = 42
+_LOW_INFORMATION_TERMS: set[str] = {
+    "all",
+    "any",
+    "company",
+    "employee",
+    "employees",
+    "hr",
+    "leader",
+    "leaders",
+    "leadership",
+    "management",
+    "manager",
+    "managers",
+    "organization",
+    "personnel",
+    "policy",
+    "reserve",
+    "right",
+    "rights",
+    "staff",
+    "supervisor",
+    "supervisors",
+    "team",
+    "without",
+    "workplace",
+}
+_DISPLAY_PRIORITY_KEYWORDS: tuple[str, ...] = (
+    "access",
+    "appeal",
+    "approval",
+    "bonus",
+    "communications",
+    "compensation",
+    "consent",
+    "data",
+    "disciplinary",
+    "discrimination",
+    "equal opportunity",
+    "final pay",
+    "hire",
+    "hiring",
+    "investigation",
+    "location",
+    "male",
+    "monitor",
+    "monitoring",
+    "notice",
+    "overtime",
+    "pay",
+    "payroll",
+    "privacy",
+    "record",
+    "records",
+    "salary",
+    "screen",
+    "terminate",
+    "termination",
+    "track",
+    "warning",
+    "wage",
+    "without",
+    "written",
+)
 
 
 def main() -> None:
@@ -184,6 +247,7 @@ def _train_and_export(
                 feature_names=tuple(vectorizer.get_feature_names_out()),
                 explanation_values=training_explanations.values,
                 class_labels=tuple(classifier.classes_),
+                sample_labels=tuple(train_labels),
             ),
             indent=2,
         ),
@@ -246,6 +310,7 @@ def _build_global_feature_importance(
     feature_names: tuple[str, ...],
     explanation_values: Any,
     class_labels: tuple[str, ...],
+    sample_labels: tuple[str, ...],
 ) -> dict[str, list[dict[str, float | str]]]:
     try:
         import numpy as np
@@ -259,15 +324,28 @@ def _build_global_feature_importance(
             class_index=class_index,
             class_count=len(class_labels),
         )
-        mean_abs = np.abs(class_values).mean(axis=0)
-        sorted_indices = mean_abs.argsort()[::-1][:10]
-        result[str(label)] = [
-            {
-                "term": feature_names[index],
-                "mean_abs_shap": round(float(mean_abs[index]), 6),
-            }
-            for index in sorted_indices
+        matching_indices = [
+            index
+            for index, sample_label in enumerate(sample_labels)
+            if sample_label == label
         ]
+        if matching_indices:
+            class_values = class_values[matching_indices]
+        supporting_mean = np.clip(class_values, a_min=0.0, a_max=None).mean(axis=0)
+        selected_items = _select_ranked_feature_items(
+            feature_names=feature_names,
+            scores=supporting_mean,
+            limit=10,
+        )
+        if not selected_items:
+            mean_abs = np.abs(class_values).mean(axis=0)
+            selected_items = _select_ranked_feature_items(
+                feature_names=feature_names,
+                scores=mean_abs,
+                limit=10,
+                allow_low_information_terms=True,
+            )
+        result[str(label)] = selected_items
     return result
 
 
@@ -287,6 +365,94 @@ def _extract_class_values(*, values: Any, class_index: int, class_count: int):
     if ndarray.ndim == 3 and ndarray.shape[1] == class_count:
         return ndarray[:, class_index, :]
     raise RuntimeError("Unsupported SHAP output shape while building the global report")
+
+
+def _select_ranked_feature_items(
+    *,
+    feature_names: tuple[str, ...],
+    scores: Any,
+    limit: int,
+    allow_low_information_terms: bool = False,
+) -> list[dict[str, float | str]]:
+    try:
+        import numpy as np
+    except ModuleNotFoundError as exc:
+        raise RuntimeError("NumPy is required to rank SHAP features") from exc
+
+    ndarray = np.asarray(scores)
+    ranked_indices = sorted(
+        range(len(feature_names)),
+        key=lambda index: _display_priority_score(feature_names[index], float(ndarray[index])),
+        reverse=True,
+    )
+    items: list[dict[str, float | str]] = []
+    selected_terms: list[str] = []
+    for index in ranked_indices:
+        score = float(ndarray[index])
+        if score <= 0:
+            continue
+        term = feature_names[index]
+        if not allow_low_information_terms and _is_low_information_term(term):
+            continue
+        if _term_conflicts_with_selected_terms(term, selected_terms):
+            continue
+        items.append(
+            {
+                "term": term,
+                "mean_abs_shap": round(score, 6),
+            }
+        )
+        selected_terms.append(term)
+        if len(items) == limit:
+            return items
+    return items
+
+
+def _display_priority_score(term: str, shap_score: float) -> float:
+    normalized = _normalize_term(term)
+    phrase_bonus = 0.025 if " " in normalized else 0.0
+    domain_bonus = (
+        0.02
+        if any(keyword in normalized for keyword in _DISPLAY_PRIORITY_KEYWORDS)
+        else 0.0
+    )
+    information_penalty = 0.08 if _is_low_information_term(term) else 0.0
+    return shap_score + phrase_bonus + domain_bonus - information_penalty
+
+
+def _is_low_information_term(term: str) -> bool:
+    normalized = _normalize_term(term)
+    if len(normalized) <= 2 or normalized in _LOW_INFORMATION_TERMS:
+        return True
+    if normalized.startswith(("without ", "all ", "any ", "reserve ", "right ", "rights ")):
+        return not _has_priority_keyword(normalized)
+    if normalized.endswith((" without", " all", " any", " reserve", " right", " rights")):
+        return True
+    return False
+
+
+def _term_conflicts_with_selected_terms(term: str, selected_terms: list[str]) -> bool:
+    normalized = _normalize_term(term)
+    normalized_tokens = set(normalized.split())
+    for selected_term in selected_terms:
+        selected_normalized = _normalize_term(selected_term)
+        if normalized == selected_normalized:
+            return True
+        if " " in selected_normalized and normalized in selected_normalized:
+            return True
+        if " " in normalized and selected_normalized in normalized:
+            return True
+        if len(normalized_tokens) == 1 and normalized_tokens.issubset(set(selected_normalized.split())):
+            return True
+    return False
+
+
+def _normalize_term(term: str) -> str:
+    return term.replace("_", " ").strip().lower()
+
+
+def _has_priority_keyword(normalized_term: str) -> bool:
+    return any(keyword in normalized_term for keyword in _DISPLAY_PRIORITY_KEYWORDS)
 
 
 if __name__ == "__main__":

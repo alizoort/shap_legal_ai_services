@@ -23,6 +23,69 @@ from services.legal_ai_service.domain.exceptions import ModelArtifactsUnavailabl
 
 _TOP_FEATURE_COUNT = 5
 _GLOBAL_FEATURE_COUNT = 8
+_LOW_INFORMATION_TERMS: set[str] = {
+    "all",
+    "any",
+    "company",
+    "employee",
+    "employees",
+    "hr",
+    "leader",
+    "leaders",
+    "leadership",
+    "management",
+    "manager",
+    "managers",
+    "organization",
+    "personnel",
+    "policy",
+    "reserve",
+    "right",
+    "rights",
+    "staff",
+    "supervisor",
+    "supervisors",
+    "team",
+    "without",
+    "workplace",
+}
+_DISPLAY_PRIORITY_KEYWORDS: tuple[str, ...] = (
+    "access",
+    "appeal",
+    "approval",
+    "bonus",
+    "communications",
+    "compensation",
+    "consent",
+    "data",
+    "disciplinary",
+    "discrimination",
+    "equal opportunity",
+    "final pay",
+    "hire",
+    "hiring",
+    "investigation",
+    "location",
+    "male",
+    "monitor",
+    "monitoring",
+    "notice",
+    "overtime",
+    "pay",
+    "payroll",
+    "privacy",
+    "record",
+    "records",
+    "salary",
+    "screen",
+    "terminate",
+    "termination",
+    "track",
+    "warning",
+    "wage",
+    "without",
+    "written",
+)
 _NEGATIVE_THEME_KEYWORDS: dict[str, tuple[str, ...]] = {
     "unrestricted monitoring": (
         "monitor",
@@ -179,23 +242,26 @@ class SklearnLegalAiModelGateway:
             )
             for index in present_indices
         ]
-        supporting = tuple(
-            sorted(
-                (item for item in contributions if item.shap_value > 0),
-                key=lambda item: item.shap_value,
-                reverse=True,
-            )[:_TOP_FEATURE_COUNT]
+        supporting_candidates = tuple(item for item in contributions if item.shap_value > 0)
+        supporting = _select_display_contributions(
+            supporting_candidates,
+            limit=_TOP_FEATURE_COUNT,
         )
-        against = tuple(
-            sorted(
-                (item for item in contributions if item.shap_value < 0),
-                key=lambda item: item.shap_value,
-            )[:_TOP_FEATURE_COUNT]
+        against_candidates = tuple(
+            item
+            for item in contributions
+            if item.shap_value < 0
+            and not _term_conflicts_with_selected_features(
+                item.term,
+                supporting,
+            )
+        )
+        against = _select_display_contributions(
+            against_candidates,
+            limit=_TOP_FEATURE_COUNT,
         )
         if not supporting:
-            supporting = tuple(
-                sorted(contributions, key=lambda item: item.shap_value, reverse=True)[:_TOP_FEATURE_COUNT]
-            )
+            supporting = _fallback_feature_contributions(contributions, limit=_TOP_FEATURE_COUNT)
         return PredictionSnapshot(
             risk_label=predicted_label,
             class_probabilities=_build_class_probabilities(
@@ -419,3 +485,100 @@ def _extract_class_values(*, values: Any, class_index: int, class_count: int):
     if ndarray.ndim == 3 and ndarray.shape[1] == class_count:
         return ndarray[0, class_index, :]
     raise ModelArtifactsUnavailableError("Unsupported SHAP output shape for multiclass classifier")
+
+
+def _select_display_contributions(
+    items: tuple[FeatureContribution, ...],
+    *,
+    limit: int,
+) -> tuple[FeatureContribution, ...]:
+    ranked = sorted(
+        items,
+        key=lambda item: _display_priority_score(item.term, abs(item.shap_value)),
+        reverse=True,
+    )
+    selected: list[FeatureContribution] = []
+    selected_terms: list[str] = []
+    for item in ranked:
+        if _is_low_information_term(item.term):
+            continue
+        if _term_conflicts_with_selected_terms(item.term, selected_terms):
+            continue
+        selected.append(item)
+        selected_terms.append(item.term)
+        if len(selected) == limit:
+            return tuple(selected)
+    if selected:
+        return tuple(selected)
+    return _fallback_feature_contributions(items, limit=limit)
+
+
+def _fallback_feature_contributions(
+    items: Iterable[FeatureContribution],
+    *,
+    limit: int,
+) -> tuple[FeatureContribution, ...]:
+    return tuple(
+        sorted(
+            items,
+            key=lambda item: abs(item.shap_value),
+            reverse=True,
+        )[:limit]
+    )
+
+
+def _display_priority_score(term: str, shap_magnitude: float) -> float:
+    normalized = _normalize_term(term)
+    phrase_bonus = 0.025 if " " in normalized else 0.0
+    domain_bonus = (
+        0.02
+        if any(keyword in normalized for keyword in _DISPLAY_PRIORITY_KEYWORDS)
+        else 0.0
+    )
+    information_penalty = 0.08 if _is_low_information_term(term) else 0.0
+    return shap_magnitude + phrase_bonus + domain_bonus - information_penalty
+
+
+def _is_low_information_term(term: str) -> bool:
+    normalized = _normalize_term(term)
+    if len(normalized) <= 2 or normalized in _LOW_INFORMATION_TERMS:
+        return True
+    if normalized.startswith(("without ", "all ", "any ", "reserve ", "right ", "rights ")):
+        return not _has_priority_keyword(normalized)
+    if normalized.endswith((" without", " all", " any", " reserve", " right", " rights")):
+        return True
+    return False
+
+
+def _term_conflicts_with_selected_features(
+    term: str,
+    selected_items: tuple[FeatureContribution, ...],
+) -> bool:
+    return _term_conflicts_with_selected_terms(
+        term,
+        [item.term for item in selected_items],
+    )
+
+
+def _term_conflicts_with_selected_terms(term: str, selected_terms: list[str]) -> bool:
+    normalized = _normalize_term(term)
+    normalized_tokens = set(normalized.split())
+    for selected_term in selected_terms:
+        selected_normalized = _normalize_term(selected_term)
+        if normalized == selected_normalized:
+            return True
+        if " " in selected_normalized and normalized in selected_normalized:
+            return True
+        if " " in normalized and selected_normalized in normalized:
+            return True
+        if len(normalized_tokens) == 1 and normalized_tokens.issubset(set(selected_normalized.split())):
+            return True
+    return False
+
+
+def _normalize_term(term: str) -> str:
+    return term.replace("_", " ").strip().lower()
+
+
+def _has_priority_keyword(normalized_term: str) -> bool:
+    return any(keyword in normalized_term for keyword in _DISPLAY_PRIORITY_KEYWORDS)

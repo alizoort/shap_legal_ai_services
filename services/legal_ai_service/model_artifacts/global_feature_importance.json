@@ -1,128 +1,128 @@
 {
   "high": [
     {
-      "term": "without",
-      "mean_abs_shap": 0.058214
+      "term": "reduce pay",
+      "mean_abs_shap": 0.006697
     },
     {
-      "term": "access",
-      "mean_abs_shap": 0.02039
+      "term": "terminate immediately",
+      "mean_abs_shap": 0.005174
     },
     {
-      "term": "all",
-      "mean_abs_shap": 0.016845
+      "term": "without approval",
+      "mean_abs_shap": 0.004922
     },
     {
-      "term": "monitor",
-      "mean_abs_shap": 0.015607
+      "term": "without written",
+      "mean_abs_shap": 0.004587
     },
     {
-      "term": "records",
-      "mean_abs_shap": 0.011786
+      "term": "without any",
+      "mean_abs_shap": 0.004554
     },
     {
-      "term": "track",
-      "mean_abs_shap": 0.010032
+      "term": "without documenting",
+      "mean_abs_shap": 0.004402
     },
     {
-      "term": "process",
-      "mean_abs_shap": 0.008506
+      "term": "payroll immediately",
+      "mean_abs_shap": 0.004296
     },
     {
-      "term": "check",
-      "mean_abs_shap": 0.008333
+      "term": "remove payroll",
+      "mean_abs_shap": 0.004296
     },
     {
-      "term": "inspect",
-      "mean_abs_shap": 0.007485
+      "term": "screen applicants",
+      "mean_abs_shap": 0.004085
     },
     {
-      "term": "security",
-      "mean_abs_shap": 0.007222
+      "term": "without notice",
+      "mean_abs_shap": 0.00407
     }
   ],
   "low": [
     {
-      "term": "without",
-      "mean_abs_shap": 0.065338
+      "term": "written notice",
+      "mean_abs_shap": 0.003751
     },
     {
-      "term": "access",
-      "mean_abs_shap": 0.025237
+      "term": "disciplinary matters",
+      "mean_abs_shap": 0.003652
     },
     {
-      "term": "documented",
-      "mean_abs_shap": 0.014487
+      "term": "review disciplinary",
+      "mean_abs_shap": 0.003652
     },
     {
-      "term": "review",
-      "mean_abs_shap": 0.014119
+      "term": "review termination",
+      "mean_abs_shap": 0.003407
     },
     {
-      "term": "process",
-      "mean_abs_shap": 0.013363
+      "term": "termination recommendations",
+      "mean_abs_shap": 0.003407
     },
     {
-      "term": "security",
-      "mean_abs_shap": 0.012022
+      "term": "written records",
+      "mean_abs_shap": 0.003038
     },
     {
-      "term": "written",
-      "mean_abs_shap": 0.011109
+      "term": "without notice",
+      "mean_abs_shap": 0.0027
     },
     {
-      "term": "not",
-      "mean_abs_shap": 0.009814
+      "term": "without limiting",
+      "mean_abs_shap": 0.002549
     },
     {
-      "term": "audit",
-      "mean_abs_shap": 0.009184
+      "term": "without defining",
+      "mean_abs_shap": 0.002271
     },
     {
-      "term": "all",
-      "mean_abs_shap": 0.008241
+      "term": "without explaining",
+      "mean_abs_shap": 0.002243
     }
   ],
   "medium": [
     {
-      "term": "check",
-      "mean_abs_shap": 0.016185
-    },
-    {
-      "term": "not",
-      "mean_abs_shap": 0.015748
-    },
-    {
-      "term": "inspect",
-      "mean_abs_shap": 0.014974
-    },
-    {
-      "term": "documented",
-      "mean_abs_shap": 0.010245
-    },
-    {
-      "term": "written",
-      "mean_abs_shap": 0.009246
-    },
-    {
-      "term": "review",
-      "mean_abs_shap": 0.009236
-    },
-    {
-      "term": "all",
-      "mean_abs_shap": 0.008604
-    },
-    {
-      "term": "monitor",
-      "mean_abs_shap": 0.00824
-    },
-    {
-      "term": "notice",
-      "mean_abs_shap": 0.007291
-    },
-    {
       "term": "without defining",
-      "mean_abs_shap": 0.007166
+      "mean_abs_shap": 0.007805
+    },
+    {
+      "term": "overtime practices",
+      "mean_abs_shap": 0.004374
+    },
+    {
+      "term": "revise overtime",
+      "mean_abs_shap": 0.004374
+    },
+    {
+      "term": "screen candidates",
+      "mean_abs_shap": 0.004363
+    },
+    {
+      "term": "without explaining",
+      "mean_abs_shap": 0.004155
+    },
+    {
+      "term": "disciplinary action",
+      "mean_abs_shap": 0.003969
+    },
+    {
+      "term": "without clarifying",
+      "mean_abs_shap": 0.003699
+    },
+    {
+      "term": "access data",
+      "mean_abs_shap": 0.002863
+    },
+    {
+      "term": "without saying",
+      "mean_abs_shap": 0.002704
+    },
+    {
+      "term": "without notice",
+      "mean_abs_shap": 0.002587
     }
   ]
 }

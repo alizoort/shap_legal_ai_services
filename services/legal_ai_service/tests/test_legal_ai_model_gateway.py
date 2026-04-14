@@ -12,6 +12,7 @@ from services.legal_ai_service.domain.entities import FeatureContribution
 from services.legal_ai_service.infrastructure.ml.legal_ai_model_gateway import (
     _build_plain_english_explanation,
     _extract_class_values,
+    _select_display_contributions,
 )
 
 
@@ -61,6 +62,23 @@ class LegalAiModelGatewayHelperTests(unittest.TestCase):
         extracted = _extract_class_values(values=values, class_index=1, class_count=3)
 
         self.assertTrue(np.allclose(extracted, np.array([0.2, 0.5, 0.8])))
+
+    def test_select_display_contributions_prefers_meaningful_terms(self) -> None:
+        selected = _select_display_contributions(
+            (
+                FeatureContribution(term="reserve", shap_value=0.10),
+                FeatureContribution(term="any", shap_value=0.09),
+                FeatureContribution(term="all", shap_value=0.08),
+                FeatureContribution(term="monitor", shap_value=0.07),
+                FeatureContribution(term="without notice", shap_value=0.06),
+            ),
+            limit=3,
+        )
+
+        self.assertEqual(
+            [item.term for item in selected],
+            ["without notice", "monitor"],
+        )
 
 
 if __name__ == "__main__":

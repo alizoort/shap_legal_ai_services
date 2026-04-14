@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[3]))
 
 from services.legal_ai_service.scripts.export_synthetic_dataset import export_datasets
 from services.legal_ai_service.scripts.train_compliance_model import (
+    _build_global_feature_importance,
     _read_dataset,
     _train_and_export,
 )
@@ -43,6 +44,37 @@ class LegalAiTrainingPipelineTests(unittest.TestCase):
                 "global_feature_importance.json",
             ):
                 self.assertTrue((artifacts_dir / relative_path).exists(), relative_path)
+
+    def test_global_feature_importance_prefers_supportive_terms_over_generic_tokens(self) -> None:
+        report = _build_global_feature_importance(
+            feature_names=(
+                "reserve",
+                "all",
+                "monitor",
+                "without notice",
+            ),
+            explanation_values=[
+                [
+                    [0.05, 0.04, 0.01, 0.01],
+                    [0.06, 0.05, 0.02, 0.02],
+                ],
+                [
+                    [0.01, 0.01, 0.18, 0.22],
+                    [0.01, 0.01, 0.16, 0.20],
+                ],
+                [
+                    [0.02, 0.02, 0.03, 0.04],
+                    [0.02, 0.02, 0.03, 0.04],
+                ],
+            ],
+            class_labels=("low", "medium", "high"),
+            sample_labels=("low", "low"),
+        )
+
+        self.assertEqual(
+            [item["term"] for item in report["medium"][:2]],
+            ["without notice", "monitor"],
+        )
 
 
 if __name__ == "__main__":
